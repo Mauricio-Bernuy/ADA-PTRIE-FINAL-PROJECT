@@ -72,10 +72,10 @@ function C(i,j,r):
 Complexity = O(n)
 --
 
-almacena: dos indices, i y j, el valor del nodo target_r, una lista de 
-                        elementos trie_node y un booleano addremaining.
+almacena: dos indices, i y j, el valor del nodo target_r, y una lista de 
+                        elementos trie_node de sus hijos.
 
-structure trie_node { i, j, target_r, childs, addremaining }
+structure trie_node { i, j, target_r, childs, }
 
 recibe: dos índices del conjunto de cadenas S.
 devuelve: un par de elementos: # de aristas parcial y una lista de nodos del trie parcial.
@@ -101,15 +101,10 @@ function OPT_line(i,j):
                     if (k' != r && k' not in K(i,j)):
                         tmp = trie_list'
                         trie_list' = empty_list
-                        trie_list'.push( trie_node{ i', j', k', tmp, false } )
+                        trie_list'.push( trie_node{ i', j', k', tmp} )
             
-            if (edges' == 0):
-                edges_left = |K(i',j')| - |K(i,j)| - 1
-                if (edges_left == 0):
-                    trie_list' = empty_list
-                    trie_list'.push( trie_node{ i', j', -1, empty_list, true } )
             
-            accumulated_trie_list.push( trie_node{ i', j', r, trie_list', false } )
+            accumulated_trie_list.push( trie_node{ i', j', r, trie_list'} )
         
         if (accumulated_sum < target_min):
             target_min = accumulated_sum
@@ -128,6 +123,6 @@ function OPT(i,j):
     for k in K(i,j):
         tmp = trie_list_line
         trie_list_line = empty_list
-        trie_list_line.push( trie_node{ i, j, k, tmp, false } )
+        trie_list_line.push( trie_node{ i, j, k, tmp } )
     
     return (edges_line + |K(i,j)|, trie_list_line)
