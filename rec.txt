@@ -1,0 +1,133 @@
+
+
+recibe: dos indices del conjunto de cadenas S.
+devuelve: un arreglo de valores booleanos de tamaño m, indicando si 
+            dicha columna tiene todos sus caracteres iguales para este rango de indices.
+
+function K_GEN(i,j):
+    check[m] = { true }
+    last_S = S[i-1]
+    for x = i to j-1:
+        for c = 0 to m-1:
+            if (S[x][c] != last_S[c]):
+                check[c] = false
+    
+    return check
+
+Complexity = O(nm)
+--
+
+recibe: dos indices del conjunto de cadenas S.
+devuelve: una lista de indices de columnas con todos sus caracteres iguales para este rango de indices. 
+
+function K(i,j):
+    kgen = K_GEN(i,j)
+    k_list = empty_list
+    cnt = 0
+    for k in kgen:
+        if (k == true):
+            k_list.push(cnt)
+        cnt = cnt + 1
+
+    return k_list
+
+Complexity = O(nm)
+--
+
+recibe: dos indices del conjunto de cadenas S.
+devuelve: una lista de indices de columnas con todos sus caracteres no iguales para este rango de indices. 
+
+function R(i,j):
+    kgen = K_GEN(i,j)
+    r_list = empty_list
+    cnt = 0
+    for k in kgen:
+        if (k == false):
+            r_list.push(cnt)
+        cnt = cnt + 1
+
+    return r_list
+
+Complexity = O(nm)
+--
+
+recibe: dos indices del conjunto de cadenas S y un valor r ∈ R(i,j) para estos índices.
+devuelve: una lista de pares indicando las subsecuencias contiguas para este rango de indices y la columna r.
+
+function C(i,j,r):
+    c_list = empty_list
+    beginpos = endpos = i
+
+    while (endpos <= j && beginpos <= j):
+        if (S[beginpos-1][r] == S[endpos-1][r]):
+            endpos = endpos + 1
+            if (endpos > j):
+                c_list.push( (beginpos, endpos-1) )
+        else:
+            c_list.push( (beginpos, endpos-1)
+            beginpos = endpos
+    
+    return c_list
+
+Complexity = O(n)
+--
+
+almacena: dos indices, i y j, el valor del nodo target_r, una lista de 
+                        elementos trie_node y un booleano addremaining.
+
+structure trie_node { i, j, target_r, childs, addremaining }
+
+recibe: dos índices del conjunto de cadenas S.
+devuelve: un par de elementos: # de aristas parcial y una lista de nodos del trie parcial.
+
+function OPT_line(i,j):
+    if (i == j):
+        return ( 0, empty_list )
+
+    target_min = +inf
+    target_trie_list = empty_list
+    target_r = 0
+
+    for r in R(i,j):
+        accumulated_sum = 0
+        accumulated_trie_list = empty_list
+
+        for (i',j') in C(i,j,r):
+            (edges', trie_list') = OPT_line(i',j')
+            accumulated_sum = accumulated_sum + edges + |K(i',j')| - |K(i,j)|
+
+            if (|K(i',j')| > 1):
+                for k' in K(i',j'):
+                    if (k' != r && k' not in K(i,j)):
+                        tmp = trie_list'
+                        trie_list' = empty_list
+                        trie_list'.push( trie_node{ i', j', k', tmp, false } )
+            
+            if (edges' == 0):
+                edges_left = |K(i',j')| - |K(i,j)| - 1
+                if (edges_left == 0):
+                    trie_list' = empty_list
+                    trie_list'.push( trie_node{ i', j', -1, empty_list, true } )
+            
+            accumulated_trie_list.push( trie_node{ i', j', r, trie_list', false } )
+        
+        if (accumulated_sum < target_min):
+            target_min = accumulated_sum
+            target_trie_list = accumulated_trie_list
+            target_r = r
+    
+    return (target_min, target_trie_list)
+
+
+recibe: dos índices del conjunto de cadenas S.
+devuelve: un par de elementos: # de aristas final y una lista de nodos del trie final.
+
+function OPT(i,j):
+    (edges_line, trie_list_line) = OPT_line(i,j)
+
+    for k in K(i,j):
+        tmp = trie_list_line
+        trie_list_line = empty_list
+        trie_list_line.push( trie_node{ i, j, k, tmp, false } )
+    
+    return (edges_line + |K(i,j)|, trie_list_line)
