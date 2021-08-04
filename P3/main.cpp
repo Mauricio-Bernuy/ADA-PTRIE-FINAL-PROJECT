@@ -8,6 +8,7 @@
 #include <queue>
 #include <tuple>
 #include <fstream>
+#include <stack>
 
 using namespace std;
 
@@ -230,6 +231,7 @@ struct targ{
     int i;
     int j;
     int targetr;
+    char c;
     vector<targ> sons;
 };
 
@@ -273,7 +275,7 @@ tuple<int, vector<targ>> OPT_line (int i, int j){
                 for (int k_ : kay){
                     if (k_ != r && !(find(kayfull.begin(),kayfull.end(), k_) != kayfull.end())){
                         vector<targ> empty;
-                        next->push_back(targ{iprime,jprime, k_,empty});
+                        next->push_back(targ{iprime,jprime, k_, S[iprime-1][k_], empty});
                         next = &(*next)[0].sons; 
                     }
                 }
@@ -281,7 +283,7 @@ tuple<int, vector<targ>> OPT_line (int i, int j){
                 x = make_tuple(get<0>(x), temp);
             }
 
-            accum.push_back(targ{iprime,jprime,r,get<1>(x)});
+            accum.push_back(targ{iprime,jprime,r,S[iprime-1][r],get<1>(x)});
         }
 
         // will end up with min edge value for the subproblem
@@ -348,7 +350,7 @@ tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){
                 for (int k_ : kay){
                     if (k_ != r && !(find(kayfull.begin(),kayfull.end(), k_) != kayfull.end())){
                         vector<targ> empty;
-                        next->push_back(targ{iprime,jprime, k_,empty});
+                        next->push_back(targ{iprime,jprime, k_, S[iprime-1][k_], empty});
                         next = &(*next)[0].sons; 
                     }
                 }
@@ -356,7 +358,7 @@ tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){
                 x = make_tuple(get<0>(x), temp);
             }
 
-            accum.push_back(targ{iprime,jprime,r,get<1>(x)});
+            accum.push_back(targ{iprime,jprime,r,S[iprime-1][r],get<1>(x)});
         }
 
         // will end up with min edge value for the subproblem
@@ -575,8 +577,8 @@ void printres(vector<targ> in){ // pre-fix printing
         printf("# starting (%d,%d,%d)\n", t.i, t.j, t.targetr); 
         myfile << "# starting (" << t.i <<"," << t.j << "," << t.targetr << ")\n";
         
-        printf("(%d,%d,%d -> %c) \n", t.i, t.j, t.targetr, S[t.i-1][t.targetr]);
-        myfile <<"(" << t.i <<"," << t.j <<"," << t.targetr << " -> " << S[t.i-1][t.targetr] << ") \n";
+        printf("(%d,%d,%d -> %c) \n", t.i, t.j, t.targetr, t.c);
+        myfile <<"(" << t.i <<"," << t.j <<"," << t.targetr << " -> " << t.c << ") \n";
         
         printres(t.sons);
 
@@ -584,6 +586,89 @@ void printres(vector<targ> in){ // pre-fix printing
         myfile << "# ending (" << t.i <<"," << t.j << "," << t.targetr << ")\n";
     }
     return;
+}
+
+void printres_mod(vector<targ> in){ // pre-fix printing
+    if (in.empty()){
+        //printf("(REACHED LEAF)\n");
+        //myfile << "(REACHED LEAF)\n";
+        return;
+    }
+    for (auto t : in){
+        printf("S(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
+        myfile << "S(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
+        
+        //printf("(%d,%d,%d -> %c) \n", t.i, t.j, t.targetr, S[t.i-1][t.targetr]);
+        //myfile <<"(" << t.i <<"," << t.j <<"," << t.targetr << " -> " << S[t.i-1][t.targetr] << ") \n";
+        
+        printres_mod(t.sons);
+
+        printf("E(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
+        myfile << "E(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
+    }
+    return;
+}
+
+struct targ_{
+    int i;
+    int j;
+    int targetr;
+    char c;
+    vector<targ_*> sons;
+};
+
+// READ FROM OUTPUTS, IN CASE TRIE CAME FROM P1, THE PERMUTATION FOR EVERY ROOT TO LEAF IS THE SAME
+// (can basically read it into targ structure as well)
+
+vector<targ_*> readres_mod(){
+    ifstream input;
+    input.open("C:/Users/mauri/Documents/GitHub/ADA_FINAL_PROJECT/P3/output.txt");
+
+    vector<targ_*> result;
+    stack<targ_*> OPSTACK;
+    targ_* ROOT = new targ_;
+    *ROOT = (targ_{-1,-1, -1, 'R', result});
+
+    OPSTACK.push(ROOT);
+    targ_* iter;
+
+    while (!OPSTACK.empty()){
+        iter = OPSTACK.top();
+        string line;
+        getline(input,line);
+
+        if (line.length() > 0){
+            if (line[0] == 'S'){
+                string temp;
+                line.erase(0,2);
+                line.pop_back();
+
+                stringstream line_s(line);
+                
+                getline(line_s, temp, ',');
+                int i = stoi(temp);
+                getline(line_s, temp, ',');
+                int j = stoi(temp);
+                getline(line_s, temp, ',');
+                int r = stoi(temp);
+                getline(line_s, temp, ',');
+                char c = temp[0];
+                
+
+                targ_ * a = new targ_{i,j, r, c};
+                //  tuple<int, vector<targ_>> * copy =  new tuple<int, vector<targ_>>;
+                // *copy = retrn;  
+                iter->sons.push_back(a);
+                OPSTACK.push(a);
+            }
+
+            else if (line[0] == 'E'){
+                OPSTACK.pop();
+            }
+        }
+        else break;
+    }
+    return ROOT->sons;
 }
 
 vector<bool> search(string chars, vector<targ> data){
@@ -595,7 +680,6 @@ vector<bool> search(string chars, vector<targ> data){
       }
     }
 }
-
 
 vector<char> search_string(int k, string chars, vector<targ> data){
     // vector sdasd = [a,a,X,s]
@@ -689,8 +773,9 @@ int main(){
     // //get_all(1,S.size(), 4);
     // printres(get<1>(b));
 
-    auto c = OPT_DP(1,S.size());
-    printres(get<1>(c));
-    myfile.close();
+    //auto c = OPT_DP(1,S.size());
+    //printres_mod(get<1>(c));
+    //myfile.close();
     
+    readres_mod();
 }

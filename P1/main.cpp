@@ -154,8 +154,6 @@ int main(int argc, char** argv){
 		keys.push_back(key);
 	}
 
-
-
   cout << "Cadenas a probar: ";
 	for (auto key : keys) {
 		if(ENABLE_STRING_PRINTS) std::cout << key <<", ";
