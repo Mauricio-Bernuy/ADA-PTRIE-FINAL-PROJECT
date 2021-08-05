@@ -1,24 +1,18 @@
-#include <iostream>
-#include <map>
-#include <string>
-#include <vector>
-#include <numeric>
-#include <sstream>
-#include <algorithm>
-#include <queue>
-#include <tuple>
-#include <fstream>
-#include <stack>
+
+#include "SPTRIEGEN.h"
 
 using namespace std;
 
 #define DEBUG_PRINTS 0
 
-ofstream myfile;
+vector<string> S; // global string object
 
-vector<string> S;
+// MEMOIZATION MATRICES
 
 vector<vector<vector<bool>*>> K_MEM;
+vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M;
+
+// AUXILIARY FUNCTIONS
 
 vector<bool> K_GEN(int i, int j){
     int m = S[0].length();
@@ -37,7 +31,9 @@ vector<bool> K_GEN(int i, int j){
 
 vector<bool> K_GEN_MEMO(int i, int j){
     if (K_MEM[i][j] != nullptr){
+        #ifdef PRINTING
         printf("->K_MEM[%d][%d] HIT\n", i,j);
+        #endif
         return *K_MEM[i][j];
     }
     int m = S[0].length();
@@ -54,7 +50,9 @@ vector<bool> K_GEN_MEMO(int i, int j){
     vector<bool> * copy = new vector<bool>;
     *copy = check;  
     K_MEM[i][j] = copy;
+    #ifdef PRINTING
     printf("<-K_MEM[%d][%d] STORE\n", i,j);
+    #endif
     return check;
 }
 
@@ -141,9 +139,6 @@ vector<string> S_line (int i, int j){
     }
     return ret;
 }
-
-// C not needed to be memoized, each C(i,j,r) is only called once
-//vector<vector<vector< vector<vector<int>>* >>> C_MEM;
  
 vector<vector<int>> C(int i,int j,int r){
     vector<vector<int>> res;
@@ -181,59 +176,7 @@ vector<vector<int>> C(int i,int j,int r){
     return res;
 }
 
-// C not needed to be memoized, each C(i,j,r) is only called once
-/*vector<vector<int>> C_MEMO(int i,int j,int r){
-    if (C_MEM[i][j][r] != nullptr){
-        printf("->C_MEM[%d][%d][%d] HIT\n", i,j,r);
-        return *C_MEM[i][j][r];
-    }
-
-    vector<vector<int>> res;
-
-    if (DEBUG_PRINTS){
-        for (int c = i-1; c <= j-1; c++){
-            auto x = S[c][r];
-            cout << x << ", ";
-        }
-    }
-    
-    int beginpos,endpos;
-    beginpos = i;
-    endpos = i;    
-    
-    while (endpos <= j && beginpos <= j){
-        if (S[beginpos-1][r] == S[endpos-1][r]){
-            endpos++;
-            if (endpos > j) 
-                res.push_back({beginpos,endpos-1});
-        }
-        else{
-            res.push_back({beginpos,endpos-1});
-            beginpos = endpos;                  
-        }
-    }
-
-    if (DEBUG_PRINTS){
-        for (int d = 0; d < res.size(); d++){
-            cout << "("<< res[d][0] << ", " << res[d][1] << ") ";
-        }
-        cout << "\n";
-    }
-
-    vector<vector<int>> * copy = new vector<vector<int>>;
-    *copy = res;  
-    C_MEM[i][j][r] = copy;
-    printf("<-C_MEM[%d][%d][%d] STORE\n", i,j,r);
-    return res;
-}*/
-
-struct targ{
-    int i;
-    int j;
-    int targetr;
-    char c;
-    vector<targ> sons;
-};
+// OPT CONSTRUCTION
 
 tuple<int, vector<targ>> OPT_line (int i, int j){ 
     if (i == j){
@@ -265,7 +208,9 @@ tuple<int, vector<targ>> OPT_line (int i, int j){
             // MERGE SITUATION - in case there's more than one K for the prime indexes
 
             if (K(iprime,jprime).size() > 1){
-                if (DEBUG_PRINTS) printf("(%d, %d) merge situation\n", iprime,jprime);
+                #ifdef PRINTING
+                printf("(%d, %d) merge situation\n", iprime,jprime);
+                #endif
                 auto kay = K(iprime,jprime);
                 auto kayfull = K(i,j);
                 vector<targ> trg_ = get<1>(x);
@@ -296,15 +241,17 @@ tuple<int, vector<targ>> OPT_line (int i, int j){
     }
 
     tuple<int, vector<targ>> retrn = make_tuple(min,targs);
-    if (DEBUG_PRINTS) printf("OPT(%d,%d) -> min: %d, vector<targ>.size(): %d \n",i,j,min,targs.size());
+    #ifdef PRINTING
+    printf("OPT_line(%d,%d) -> min: %d, vector<targ>.size(): %d \n",i,j,min,targs.size());
+    #endif
     return retrn;
 }
 
-vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M;
-
 tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){ 
     if ((OPT_LINE_M[i][j]) != nullptr){
+        #ifdef PRINTING
         printf("->OPT_line_M[%d][%d] HIT\n", i,j);
+        #endif
         return *OPT_LINE_M[i][j];
     }
 
@@ -340,7 +287,9 @@ tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){
             // MERGE SITUATION - in case there's more than one K for the prime indexes
 
             if (K_MEMO(iprime,jprime).size() > 1){
-                if (DEBUG_PRINTS) printf("(%d, %d) merge situation\n", iprime,jprime);
+                #ifdef PRINTING
+                printf("(%d, %d) merge situation\n", iprime,jprime);
+                #endif
                 auto kay = K_MEMO(iprime,jprime);
                 auto kayfull = K_MEMO(i,j);
                 vector<targ> trg_ = get<1>(x);
@@ -371,18 +320,22 @@ tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){
     }
 
     tuple<int, vector<targ>> retrn = make_tuple(min,targs);
-
-    if (DEBUG_PRINTS) printf("OPT(%d,%d) -> min: %d, vector<targ>.size(): %d \n",i,j,min,targs.size());
     
+    #ifdef PRINTING
+    printf("OPT_line_MEMO(%d,%d) -> min: %d, vector<targ>.size(): %d \n",i,j,min,targs.size());
+    #endif
+
     tuple<int, vector<targ>> * copy =  new tuple<int, vector<targ>>;
     *copy = retrn;  
     OPT_LINE_M[i][j] = copy;
+    #ifdef PRINTING
     printf("<-OPT_line_M[%d][%d] STORE\n", i,j);
+    #endif
     return retrn;
 }
 
-tuple<int, vector<targ>> OPT (int i, int j){
-
+tuple<int, vector<targ>> OPT_REC (int i, int j, vector<string> S_){
+    S = S_;
     auto line = OPT_line(i,j);
     auto a = K_GEN(i,j);
     int cnt = 0;
@@ -395,28 +348,24 @@ tuple<int, vector<targ>> OPT (int i, int j){
 
     for (bool b : a){
         if (b){
-            next->push_back(targ{i,j,cnt}); 
+            next->push_back(targ{i,j,cnt,S[i-1][cnt]}); 
             next = &(*next)[0].sons; 
             fcnt++;
         }
         cnt++;
     }
     *next = get<1>(line);
+    S.clear();
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }
 
-tuple<int, vector<targ>> OPT_MEMO (int i, int j){
+tuple<int, vector<targ>> OPT_MEMO (int i, int j, vector<string> S_){
+    S = S_;
     int m = S[0].length();
     vector<tuple<int, vector<targ>>*> OPT_LINE_M_col_ (j + 1, nullptr);
     vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M_ (j + 1, OPT_LINE_M_col_);    
     OPT_LINE_M = OPT_LINE_M_;
-
-    // C not needed to be memoized, each C(i,j,r) is only called once
-    /*vector< vector<vector<int>>* > C_MEM_col_ (m+1, nullptr);
-    vector<vector< vector<vector<int>>* >> C_MEM_col2_ (j + 1, C_MEM_col_);
-    vector<vector<vector< vector<vector<int>>* >>> C_MEM_ (j + 1, C_MEM_col2_);
-    C_MEM = C_MEM_;*/
 
     vector<vector<bool>*> K_MEM_cols_ (j + 1, nullptr);
     vector<vector<vector<bool>*>> K_MEM_ (j + 1, K_MEM_cols_);
@@ -436,17 +385,21 @@ tuple<int, vector<targ>> OPT_MEMO (int i, int j){
     vector<targ> temp;
     vector<targ> * next = &temp;
 
-    // OPT_line TO OPT - we have to complete the trie with the K(i,j) common rows connecting to the root (if there are any).
+    // OPT_line TO OPT - we have to complete the trie with the K(i,j) 
+    // common rows connecting to the root (if there are any).
 
     for (bool b : a){
         if (b){
-            next->push_back(targ{i,j,cnt}); 
+            next->push_back(targ{i,j,cnt,S[i-1][cnt]}); 
             next = &(*next)[0].sons; 
             fcnt++;
         }
         cnt++;
     }
     *next = get<1>(line);
+    S.clear();
+    K_MEM.clear();
+    OPT_LINE_M.clear();
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }
@@ -455,78 +408,113 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
     int m = S[0].length();
 
     if (PRINTMODE == 0 || PRINTMODE == 1){
-        printf("K:\n");
-
+        #ifdef PRINTING
+        printf("K_GEN_MEMO:\n");
+        #endif
         for (int j_ = i; j_ <= j; j_++){
             for (int i_ = i; i_ <= j_; i_++){
-                printf("\tK(%d,%d): {\n",i_,j_);
-                auto k = K_MEMO(i_,j_);
+                #ifdef PRINTING
+                printf("\tK_GEN_MEMO(%d,%d): {\n",i_,j_);
+                #endif
+                auto k = K_GEN_MEMO(i_,j_);
+                #ifdef PRINTING
                 for (auto x : k)
                     printf("%d,",x);
                 printf("}\n");
+                #endif
             }
         }
     }
 
     if (PRINTMODE == 0 || PRINTMODE == 2){
-        printf("R:\n");
-
+        #ifdef PRINTING
+        printf("K:\n");
+        #endif
         for (int j_ = i; j_ <= j; j_++){
             for (int i_ = i; i_ <= j_; i_++){
-                printf("\tR(%d,%d): {",i_,j_);
-                auto r = R(i_,j_);
-                for (auto x : r)
+                #ifdef PRINTING
+                printf("\tK(%d,%d): {\n",i_,j_);
+                #endif
+                auto k = K_MEMO(i_,j_);
+                #ifdef PRINTING
+                for (auto x : k)
                     printf("%d,",x);
                 printf("}\n");
+                #endif
             }
         }
     }
 
     if (PRINTMODE == 0 || PRINTMODE == 3){
-        printf("C:\n");
-
+        #ifdef PRINTING
+        printf("R:\n");
+        #endif
         for (int j_ = i; j_ <= j; j_++){
             for (int i_ = i; i_ <= j_; i_++){
+                #ifdef PRINTING
+                printf("\tR(%d,%d): {",i_,j_);
+                #endif
                 auto r = R(i_,j_);
-                for (auto r_ : r){
-                    printf("\tC(%d,%d,%d): {",i_,j_,r_);
-
-                    auto c = C(i_,j_,r_);
-                    for (auto x : c)
-                        printf("(%d,%d), ",x[0],x[1]);
-                    printf("}\n");
-                }
+                #ifdef PRINTING
+                for (auto x : r)
+                    printf("%d,",x);
+                printf("}\n");
+                #endif
             }
         }
     }
 
     if (PRINTMODE == 0 || PRINTMODE == 4){
-        printf("OPT_line:\n");
-
+        #ifdef PRINTING
+        printf("OPT_line_MEMO:\n");
+        #endif
         for (int j_ = i; j_ <= j; j_++){
             for (int i_ = i; i_ <= j_; i_++){
-                printf("\tOPT_line(%d,%d): {\n",i_,j_);
+                #ifdef PRINTING
+                printf("\tOPT_line_MEMO(%d,%d): {\n",i_,j_);
+                #endif
                 auto OPT_L = OPT_line_MEMO(i_,j_);
+                #ifdef PRINTING
                 printf("\tcount: %d,",get<0>(OPT_L));
                 printf("\tchild count: %d", get<1>(OPT_L).size());
                 printf("\t}\n");
+                #endif
+            }
+        }
+    }
+
+    if (PRINTMODE == 0 || PRINTMODE == 5){
+        #ifdef PRINTING
+        printf("C:\n");
+        #endif
+
+        for (int j_ = i; j_ <= j; j_++){
+            for (int i_ = i; i_ <= j_; i_++){
+                auto r = R(i_,j_);
+                for (auto r_ : r){
+                    #ifdef PRINTING
+                    printf("\tC(%d,%d,%d): {",i_,j_,r_);
+                    #endif
+
+                    auto c = C(i_,j_,r_);
+                    #ifdef PRINTING
+                    for (auto x : c)
+                        printf("(%d,%d), ",x[0],x[1]);
+                    printf("}\n");
+                    #endif
+                }
             }
         }
     }
 }
 
-tuple<int, vector<targ>> OPT_DP (int i, int j){
+tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
+    S = S_;
     int m = S[0].length();
 
     vector<tuple<int, vector<targ>>*> OPT_LINE_M_col_ (j + 1, nullptr);
     vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M_ (j + 1, OPT_LINE_M_col_);    
     OPT_LINE_M = OPT_LINE_M_;
-
-    // C not needed to be memoized, each C(i,j,r) is only called once
-    /*vector< vector<vector<int>>* > C_MEM_col_ (m+1, nullptr);
-    vector<vector< vector<vector<int>>* >> C_MEM_col2_ (j + 1, C_MEM_col_);
-    vector<vector<vector< vector<vector<int>>* >>> C_MEM_ (j + 1, C_MEM_col2_);
-    C_MEM = C_MEM_;*/
 
     vector<vector<bool>*> K_MEM_cols_ (j + 1, nullptr);
     vector<vector<vector<bool>*>> K_MEM_ (j + 1, K_MEM_cols_);
@@ -543,7 +531,10 @@ tuple<int, vector<targ>> OPT_DP (int i, int j){
     get_all(1,S.size(), 1); // THIS HAS TO BE K_GEN
     get_all(1,S.size(), 4); // CALCULATES OPT's
     
-    printf("finished bottomupization!\n");
+
+    #ifdef PRINTING
+    printf("Finished Bottom-Up calculations\n");
+    #endif
     
     auto line = OPT_line_MEMO(i,j);
     auto a = K_GEN_MEMO(i,j);
@@ -556,76 +547,114 @@ tuple<int, vector<targ>> OPT_DP (int i, int j){
 
     for (bool b : a){
         if (b){
-            next->push_back(targ{i,j,cnt}); 
+            next->push_back(targ{i,j,cnt,S[i-1][cnt]}); 
             next = &(*next)[0].sons; 
             fcnt++;
         }
         cnt++;
     }
     *next = get<1>(line);
+    S.clear();
+    K_MEM.clear();
+    OPT_LINE_M.clear();
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }
 
-void printres(vector<targ> in){ // pre-fix printing
+// OUTPUT FUNCTIONS
+
+void printres_info(vector<targ> in){ // pre-fix printing, more verbose
     if (in.empty()){
         printf("(REACHED LEAF)\n");
-        myfile << "(REACHED LEAF)\n";
         return;
     }
     for (auto t : in){
+
         printf("# starting (%d,%d,%d)\n", t.i, t.j, t.targetr); 
-        myfile << "# starting (" << t.i <<"," << t.j << "," << t.targetr << ")\n";
-        
         printf("(%d,%d,%d -> %c) \n", t.i, t.j, t.targetr, t.c);
-        myfile <<"(" << t.i <<"," << t.j <<"," << t.targetr << " -> " << t.c << ") \n";
-        
-        printres(t.sons);
-
+        printres_info(t.sons);
         printf("# ending (%d,%d,%d)\n", t.i, t.j, t.targetr); 
-        myfile << "# ending (" << t.i <<"," << t.j << "," << t.targetr << ")\n";
     }
     return;
 }
 
-void printres_mod(vector<targ> in){ // pre-fix printing
+// output SPTRIEGEN to ENCODING
+
+void printres_GEN(vector<targ> in, ofstream &out, bool file = 1){ // pre-fix printing
     if (in.empty()){
-        //printf("(REACHED LEAF)\n");
-        //myfile << "(REACHED LEAF)\n";
         return;
     }
     for (auto t : in){
-        printf("S(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
-        myfile << "S(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
+        if (!file) printf("S(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
+        if (file) out << "S(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
         
-        //printf("(%d,%d,%d -> %c) \n", t.i, t.j, t.targetr, S[t.i-1][t.targetr]);
-        //myfile <<"(" << t.i <<"," << t.j <<"," << t.targetr << " -> " << S[t.i-1][t.targetr] << ") \n";
-        
-        printres_mod(t.sons);
+        printres_GEN(t.sons, out, file);
 
-        printf("E(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
-        myfile << "E(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
+        if (!file) printf("E(%d,%d,%d,%c)\n", t.i, t.j, t.targetr, t.c); 
+        if (file) out << "E(" << t.i <<"," << t.j << "," << t.targetr << "," << t.c <<")\n";
     }
     return;
 }
 
-struct targ_{
-    int i;
-    int j;
-    int targetr;
-    char c;
-    vector<targ_*> sons;
-};
+void printres_GEN_file(vector<targ> in, string FILENAME){
+    ofstream out;
+    out.open(FILENAME, ios::app);
+    printres_GEN(in,out);
+    out << "-\n";
+    out.close();
+}
 
-// READ FROM OUTPUTS, IN CASE TRIE CAME FROM P1, THE PERMUTATION FOR EVERY ROOT TO LEAF IS THE SAME
-// (can basically read it into targ structure as well)
+// OUTPUT ENCODED TRIE
 
-vector<targ_*> readres_mod(){
+void printres_ANY_console(vector<targ_*> in){ // pre-fix printing ptr version
+    if (in.empty()){
+        return;
+    }
+    for (auto t : in){
+        printf("S(%d,%d,%d,%c)\n", t->i, t->j, t->targetr, t->c);
+        
+        printres_ANY_console(t->sons);
+
+        printf("E(%d,%d,%d,%c)\n", t->i, t->j, t->targetr, t->c); 
+    }
+    return;
+}
+
+void printres_ANY(vector<targ_*> in, ofstream &out, bool file = 1){ // pre-fix printing ptr version
+    if (in.empty()){
+        return;
+    }
+    for (auto t : in){
+        if (!file) printf("S(%d,%d,%d,%c)\n", t->i, t->j, t->targetr, t->c); 
+        if (file) out << "S(" << t->i <<"," << t->j << "," << t->targetr << "," << t->c <<")\n";
+        
+        printres_ANY(t->sons, out, file);
+
+        if (!file) printf("E(%d,%d,%d,%c)\n", t->i, t->j, t->targetr, t->c); 
+        if (file) out << "E(" << t->i <<"," << t->j << "," << t->targetr << "," << t->c <<")\n";
+    }
+    return;
+}
+
+void printres_ANY_file(vector<targ_*> in, string FILENAME){
+    ofstream out;
+    out.open(FILENAME, ios::app);
+    printres_ANY(in,out);
+    out << "-\n";
+    out.close();
+}
+
+// READ ENCODED TRIE
+
+vector<vector<targ_*>> readres_ANY_file(string FILENAME){
+    vector<vector<targ_*>> tries;
     ifstream input;
-    input.open("C:/Users/mauri/Documents/GitHub/ADA_FINAL_PROJECT/P3/output.txt");
+    input.open(FILENAME);
 
     vector<targ_*> result;
     stack<targ_*> OPSTACK;
+
+    newobj:
     targ_* ROOT = new targ_;
     *ROOT = (targ_{-1,-1, -1, 'R', result});
 
@@ -653,11 +682,9 @@ vector<targ_*> readres_mod(){
                 int r = stoi(temp);
                 getline(line_s, temp, ',');
                 char c = temp[0];
-                
 
-                targ_ * a = new targ_{i,j, r, c};
-                //  tuple<int, vector<targ_>> * copy =  new tuple<int, vector<targ_>>;
-                // *copy = retrn;  
+                targ_ * a = new targ_{i, j, r, c};
+
                 iter->sons.push_back(a);
                 OPSTACK.push(a);
             }
@@ -665,117 +692,90 @@ vector<targ_*> readres_mod(){
             else if (line[0] == 'E'){
                 OPSTACK.pop();
             }
+            else if (line[0] == '-'){
+                tries.push_back(ROOT->sons);
+                goto newobj;
+            }
         }
         else break;
     }
-    return ROOT->sons;
+    input.close();
+    return tries;
 }
 
-vector<bool> search(string chars, vector<targ> data){
-    vector<bool> found(chars.length(), false);
-    for (auto t : data){
-      for (int i = 0; i < chars.length(); i++){
-          if (S[t.i-1][t.targetr] = chars[i])
-            found[i] = true;
-      }
+// CLEAR ENCODE FILE
+
+void print_CLEAR(string FILENAME){
+    ofstream out;
+    out.open(FILENAME);
+    out.close();
+}
+
+// SEARCH IN ENCODED TRIE
+
+bool valid_path(string chars, vector<targ_*> data){
+    vector <targ_*> * iter = &data;
+    vector <targ_*> * next;
+    while (true){
+        bool found = false;
+        if (iter->empty()){
+            break;
+        }
+        for (auto t : *iter){
+            auto r = t->targetr;
+            if (t->c == chars[r]){
+                next = &t->sons;
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            return false;
+        }        
+        iter = next;
+
     }
+    return true;
 }
 
-vector<char> search_string(int k, string chars, vector<targ> data){
-    // vector sdasd = [a,a,X,s]
-    // string asdas = aaXs
-    // sasdasd[k] = X
-    //                                 data = { (2, b, sons[]), (2, c, sons[]) }
-    // data = { (1, a, sons[]), (1, c, sons[]) }
-    //                 data = { (0, b, sons[]), (0, c, sons[]) }
-    //        x a b
-
+vector<char> search_string(string chars, int ind_X, vector<targ_*> data){
     vector<bool> found(chars.length(), false);
     vector<char> empty;
     if (data.empty()  || chars.empty())
         return empty;
+
+    vector<char> result;
     
-    for (auto t : data){
-      for (int i = 0; i < chars.length(); i++){
-          if (S[t.i-1][t.targetr] = chars[i])
-            found[i] = true;
-      }  
+    vector <targ_*> * iter = &data;
+    vector <targ_*> * next;
+    bool finished = false;
+    while (!finished){
+        bool found = false;
+        for (auto t : *iter){
+            auto r = t->targetr;
+            if (r == ind_X){
+                found = true;
+                for (auto t_ : *iter){
+                    auto success = valid_path(chars,t_->sons);
+                    if (success){
+                        result.push_back(t_->c);
+                    }
+                }
+                finished = true;
+                break;
+            }
+            else if (t->c == chars[r]){   
+                next = &t->sons;
+                found = true;
+                break;
+            }
+        }
+        if (!found){
+            finished = true;
+        }
+
+        iter = next;
     }
-    
-    // get chars-index that are established
-    // iterate through the tree.
-    // find correspoding values and save in vector the possible X values.
- 
-}
-
-int main(){
-    myfile.open ("output.txt");
-// tests
-    //S.clear();
-    //S = {   "cbb","dcb", "dcc"   };
-/*
-    K(1,1);
-    K(1,2);
-    K(1,3);
-    K(2,2);
-    K(2,3);
-    K(3,3);
-
-    R(1,1);
-    R(1,2);
-    R(1,3);
-    R(2,2);
-    R(2,3);
-    R(3,3);
-
-    S_line(1,1);
-    S_line(1,2);
-    S_line(1,3);
-    S_line(2,2);
-    S_line(2,3);
-    S_line(3,3);
-
-
-    C(1,3,0);
-    C(1,3,1);
-    C(1,3,2);  
-    C(1,2,0);
-    C(1,2,1);
-    C(2,3,2);
-  
-*/
-   
-    
-    //S = {"aaa", "bab", "cab"};
-
-    // S = {   "aaa",
-    //         "bab",
-    //         "cab",
-    //         "cbb",
-    //         "dcb",
-    //         "dcc"   };
-
-    
-    S = {"aaasa", "baare", "bacxs", "cbbae"};
-
-    //S = {"aaa", "bab", "cab"};
-
-    //get_all(1,S.size());
-
-    //auto a = OPT(1,S.size());
-    //printf("\nObtained Min-Trie-Gen with %d edges.\n\n", get<0>(a));
-    //myfile << "Obtained Min-Trie-Gen with " << get<0>(a) << " edges.\n\n";
-    //printres(get<1>(a));
-
-    // auto b = OPT_MEMO(1,S.size());
-    // printf("\nObtained Min-Trie-Gen-MEMO with %d edges.\n\n", get<0>(b));
-    // myfile << "Obtained Min-Trie-Gen-MEMO with " << get<0>(b) << " edges.\n\n";
-    // //get_all(1,S.size(), 4);
-    // printres(get<1>(b));
-
-    //auto c = OPT_DP(1,S.size());
-    //printres_mod(get<1>(c));
-    //myfile.close();
-    
-    readres_mod();
+        
+    return result;
 }

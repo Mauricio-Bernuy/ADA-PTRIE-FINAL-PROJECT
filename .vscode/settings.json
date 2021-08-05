@@ -63,6 +63,11 @@
         "xtree": "cpp",
         "xutility": "cpp",
         "fstream": "cpp",
-        "stack": "cpp"
-    }
+        "stack": "cpp",
+        "chrono": "cpp",
+        "codecvt": "cpp",
+        "ratio": "cpp",
+        "iomanip": "cpp"
+    },
+    "C_Cpp.intelliSenseEngineFallback": "Disabled"
 }

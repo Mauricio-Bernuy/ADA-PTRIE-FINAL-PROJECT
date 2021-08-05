@@ -6,9 +6,13 @@
             "command": "C:\\msys64\\mingw64\\bin\\g++.exe",
             "args": [
                 "-g",
-                "${file}",
+                // "${workspaceFolder}\\P6\\trie_generator.cpp",
+                "${workspaceFolder}\\P6\\read_and_exec_prolog.cpp",
+                "${workspaceFolder}\\P1\\SPTRIE.cpp",
+                "${workspaceFolder}\\P3\\SPTRIEGEN.cpp",
+                "${workspaceFolder}\\P6\\read_prolog.cpp",
                 "-o",
-                "${fileDirname}\\${fileBasenameNoExtension}.exe"
+                "${workspaceFolder}\\PROGRAM.exe"
             ],
             "options": {
                 "cwd": "C:\\msys64\\mingw64\\bin"

@@ -1,5 +1,0 @@
-din(ab)
-din(ac)
-din(ba)
-din(ca)
-din(ad)

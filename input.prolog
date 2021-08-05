@@ -1,0 +1,17 @@
+din ab
+din ac
+din ad
+din ba
+din ca
+dun aaasa
+dun baare
+dun bacxs
+dun cbbae
+dan aaa
+dan bab
+dan cab
+aaaaaa dbaba
+aaaaaa dcdbb
+aaaaaa bdcab
+aaaaaa cdbkc
+aaaaaa eabkd

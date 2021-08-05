@@ -1,0 +1,43 @@
+
+
+define: un sptrie conformado por la inserción de n cadenas de tamaño
+        m contenidas en S, insertadas en el orden definido por la lista
+        de índices p_ins, y leídas de vuelta por los índices de p_rd.
+
+SPTRIE{S,p_ins,p_rd,m,n}
+
+define: un comparador que recibe i,j, y devuelve un valor booleano 
+        en base a la lógica definida, evaluada sobre el arreglo de 
+        contador por caracter max_cnt y el arreglo de conteo 
+        acumulado por caracter acc_cnt.
+
+comparator(i,j){max_cnt, acc_cnt}:
+    if max_cnt[i].counter == max_cnt[j].counter:
+        return acc_cnt[max_cnt[i].character] > acc_cnt[max_cnt[j].character]
+    else:
+        return max_cnt[i].counter > max_cnt[j].counter
+
+recibe: una lista de n cadenas S, de longitud m.
+devuelve: una representacion de un SPTRIE obtenida en base a una 
+
+Min_Trie_Heuristic(S,m,n):
+    let max_cnt[m] = (0,'')
+    let accum_cnt[|Σ|] = 0
+
+    for col = 0 to m:
+        let col_instances[|Σ|] = 0
+        for row = 0 to n:
+            char = S[row][col]
+            col_instances[char]++
+        largest_char = max(col_instances)
+        largest_val = col_instances[largest_char]
+        max_cnt[col] = (largest_val, largest_char)
+        accum_cnt[largest_char] += largest_val
+    
+    let p_insert[m] = {0,1,...,m-1}
+    quick_sort(p_insert, using=comparator{max_cnt,accum_cnt})
+    let p_read[m] = empty
+    for index=0 to m:
+        p_read[p_insert[index]] = index
+    
+    return SPTRIE[S,p_insert,p_read,m,n]
