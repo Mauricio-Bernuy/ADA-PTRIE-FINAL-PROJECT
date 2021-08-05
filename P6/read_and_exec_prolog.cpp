@@ -29,20 +29,25 @@ vector<tuple<string, int, vector<targ_ *>>> trie_reader(string FILE){
 }
 
 // EXECUTER - QUERY PROCESSING
-// structure -> ./execute.x i-trie < queries.prolog
+// structure -> ./execute.x i-trie o-response < queries.prolog
 int main(int argc, char** argv){
 
     vector<string> arguments;
     for (int i = 1; i < argc; i++)
         arguments.push_back(argv[i]);
 
-    bool setinfile;
-    string infile;
+    bool setinfile,setoutfile;
+    string infile,outfile;
     for (auto s : arguments){
         if (s[0] == 'i' && s[1] == '-'){ //input
             s = s.substr(2,s.length());
             infile = s;
             setinfile = true;
+        }
+        else if (s[0] == 'o' && s[1] == '-'){ //output
+            s = s.substr(2,s.length());
+            outfile = s;
+            setoutfile = true;
         }
         else{
             cerr << "ERROR: wrong argument\n";
@@ -51,8 +56,12 @@ int main(int argc, char** argv){
     }
     
     if (!setinfile) infile = "trie";
+    if (!setoutfile) outfile = "response";
     
     auto loaded_tries = trie_reader(infile);
+    ofstream output;
+    output.open(outfile + ".out");
+    output.close();
 
     string ln;
     while (getline(cin,ln)){
@@ -61,7 +70,7 @@ int main(int argc, char** argv){
         #ifdef PRINTING
         cout << "rule: " <<  query.first << ", string: "<< query.second <<", Xpos: " << position << "\n";
         #endif
-        
+
         vector<char> result;
         for (auto set : loaded_tries){
             auto rule = get<0>(set);
@@ -71,38 +80,28 @@ int main(int argc, char** argv){
             }
         }
         bool comma = false;
-        for (auto c : result){
-            if (!comma)
-                comma = true;
-            else
-                cout <<", ";
-            cout << "X = " << c; 
+        ofstream output;
+        output.open(outfile + ".out", ios::app);
+        if (result.empty()){
+            cout << "X = {}"; 
+            output << "X = {}"; 
         }
+        else{
+            for (auto c : result){
+                if (!comma)
+                    comma = true;
+                else{
+                    cout <<", ";
+                    output <<", ";
+                }
+                cout << "X = " << c; 
+                output << "X = " << c; 
+            }
+        }
+        
         cout << "\n"; 
+        output << "\n"; 
+        output.close();
     }
 
-    // if (r == 1){
-    //     auto a = search_string("bXare",1,x);
-    //     auto b = search_string("Xaare",0,x);
-    //     auto c = search_string("baaXe",3,x);
-    //     auto d = search_string("bacXs",3,x);
-    //     printf("xd");
-    // }
-
-    //  ab 
-    //  ac
-    //  ac
-    //  bd
-    //  be
-    //  ce
-    //  de
-    // 
-    // 
-    // aaaabbbbccd -> 0 
-    // aabbbceedfg -> 1
-    
-    // a-z
-    // N,M 
-    // aaaaaabbbbbbbbbbccccccccc
-    // bbcdejjjklm -> 2 N,M 
 }

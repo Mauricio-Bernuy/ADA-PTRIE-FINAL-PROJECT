@@ -9,7 +9,6 @@ enum WORKMODE {HEU,REC,MEMO,DP};
 //#define PRINTING
 
 // COMPILER
-
 // structure -> ./compile.x --WORKMODE i-input o-trie
 int main(int argc, char** argv){
     WORKMODE WM;
