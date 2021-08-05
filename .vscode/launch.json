@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}\\PROGRAM.exe",
-            "args": [ "i-trie"],
+            "args": ["--dynprog", "i-generate", "o-tests"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],

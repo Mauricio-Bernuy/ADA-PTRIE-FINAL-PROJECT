@@ -1,5 +1,11 @@
 #include "SPTRIE.h"
 
+#include <chrono>
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
 bool ENABLE_STRING_PRINTS = 1;
 
 // Trie structure and nodes
@@ -134,6 +140,7 @@ tuple<
 	int, 
 	int> Min_Trie_Heuristic(vector<string> S_INPUT){
 
+	auto t1 = high_resolution_clock::now();
 	// set M,N
     int N = S_INPUT.size();
     int M = S_INPUT[0].length();
@@ -189,6 +196,11 @@ tuple<
 	for(int i = 0; i < M; i++){
         p_read[p_insert[i]] = p[i]; 
     }
+	auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    #ifdef TIMINGS
+    cout <<"HEU runtime: "<< ms_double.count() << "ms\n";
+    #endif
 
 	return make_tuple(S_INPUT, p_insert,p_read,M,N);
 }

@@ -36,6 +36,7 @@ vector<bool> K_GEN_MEMO(int i, int j){
         #endif
         return *K_MEM[i][j];
     }
+
     int m = S[0].length();
     vector<bool> check(m,true);
 
@@ -335,6 +336,7 @@ tuple<int, vector<targ>> OPT_line_MEMO (int i, int j){
 }
 
 tuple<int, vector<targ>> OPT_REC (int i, int j, vector<string> S_){
+    auto t1 = high_resolution_clock::now();
     S = S_;
     auto line = OPT_line(i,j);
     auto a = K_GEN(i,j);
@@ -356,11 +358,17 @@ tuple<int, vector<targ>> OPT_REC (int i, int j, vector<string> S_){
     }
     *next = get<1>(line);
     S.clear();
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    #ifdef TIMINGS
+    cout <<"OPT_REC runtime: "<< ms_double.count() << "ms\n";
+    #endif
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }
 
 tuple<int, vector<targ>> OPT_MEMO (int i, int j, vector<string> S_){
+    auto t1 = high_resolution_clock::now();
     S = S_;
     int m = S[0].length();
     vector<tuple<int, vector<targ>>*> OPT_LINE_M_col_ (j + 1, nullptr);
@@ -376,6 +384,7 @@ tuple<int, vector<targ>> OPT_MEMO (int i, int j, vector<string> S_){
         tuple<int, vector<targ>> val = make_tuple(0, vector<targ>{});
         *copy = val;
         OPT_LINE_M[f][f] = copy;
+        K_MEM[f][f] = new vector<bool>(m,true);
     }
 
     auto line = OPT_line_MEMO(i,j);
@@ -400,6 +409,11 @@ tuple<int, vector<targ>> OPT_MEMO (int i, int j, vector<string> S_){
     S.clear();
     K_MEM.clear();
     OPT_LINE_M.clear();
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    #ifdef TIMINGS
+    cout <<"OPT_MEMO runtime: "<< ms_double.count() << "ms\n";
+    #endif
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }
@@ -464,7 +478,7 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
         }
     }
 
-    if (PRINTMODE == 0 || PRINTMODE == 4){
+    if (PRINTMODE == 0 || PRINTMODE == 6){
         #ifdef PRINTING
         printf("OPT_line_MEMO:\n");
         #endif
@@ -480,6 +494,26 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
                 printf("\t}\n");
                 #endif
             }
+        }
+    }
+    
+    if (PRINTMODE == 0 || PRINTMODE == 4){
+        #ifdef PRINTING
+        printf("OPT_line_MEMO:\n");
+        #endif
+
+        int lim = j;
+	    for (int j_ = i; j_ <= j; j_++){
+			int i = lim;
+			int jj = j_;
+			for(int ii = 1; ii <= lim; ii++){
+                #ifdef PRINTING
+                printf("\tOPT_line_MEMO(%d,%d): {\n",ii,jj);
+                #endif
+                auto OPT_L = OPT_line_MEMO(ii,jj);
+                jj++;
+			}
+			lim--;            
         }
     }
 
@@ -509,6 +543,7 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
 }
 
 tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
+    auto t1 = high_resolution_clock::now();
     S = S_;
     int m = S[0].length();
 
@@ -525,9 +560,10 @@ tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
         tuple<int, vector<targ>> val = make_tuple(0, vector<targ>{});
         *copy = val;
         OPT_LINE_M[f][f] = copy;
+        K_MEM[f][f] = new vector<bool>(m,true);
     }
 
-    // steps to calculate BOTTOM-UP: (make a separate function later)
+    
     get_all(1,S.size(), 1); // THIS HAS TO BE K_GEN
     get_all(1,S.size(), 4); // CALCULATES OPT's
     
@@ -536,8 +572,16 @@ tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
     printf("Finished Bottom-Up calculations\n");
     #endif
     
-    auto line = OPT_line_MEMO(i,j);
+    tuple<int,vector<targ>> line = *OPT_LINE_M[i][j];
+    //OPT_line_MEMO(i,j);
     auto a = K_GEN_MEMO(i,j);
+
+    auto t2 = high_resolution_clock::now();
+    duration<double, std::milli> ms_double = t2 - t1;
+    #ifdef TIMINGS
+    cout <<"OPT_DP runtime: "<< ms_double.count() << "ms\n";
+    #endif
+
     int cnt = 0;
     int fcnt = 0;
     vector<targ> temp;
@@ -557,6 +601,8 @@ tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
     S.clear();
     K_MEM.clear();
     OPT_LINE_M.clear();
+
+
 
     return make_tuple(get<0>(line) + fcnt,temp);
 }

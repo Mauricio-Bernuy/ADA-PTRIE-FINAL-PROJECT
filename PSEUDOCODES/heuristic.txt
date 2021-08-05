@@ -24,7 +24,7 @@ Min_Trie_Heuristic(S,m,n):
     let max_cnt[m] = (0,'')
     let accum_cnt[|Σ|] = 0
 
-    for col = 0 to m:
+    for col = 0 to 
         let col_instances[|Σ|] = 0
         for row = 0 to n:
             char = S[row][col]

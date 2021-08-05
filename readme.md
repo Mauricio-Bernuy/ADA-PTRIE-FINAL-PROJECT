@@ -1,7 +1,7 @@
 # build
 
-g++ -g  P6\trie_generator.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o compile.plg      
-g++ -g  P6\read_and_exec_prolog.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o execute.plg 
+g++ -g P6\read_and_exec_prolog.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o execute.plg 
+g++ -D -TIMINGS -D -PRINTING -g P6\trie_generator.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o compile.plg       
 
 # execute
 
@@ -10,6 +10,6 @@ g++ -g  P6\read_and_exec_prolog.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolo
 
 ./execute.plg i-trie o-response < queries.prolog
 
-# execute one liner
+# execute on one line
 
 compile.plg --dynprog i-input o-trie && execute.plg i-trie o-response < queries.prolog

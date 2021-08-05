@@ -12,9 +12,26 @@
 #include <tuple>
 #include <fstream>
 #include <stack>
+#include <chrono>
 
 using namespace std;
 
+// #define TIMINGS
+
+using std::chrono::high_resolution_clock;
+using std::chrono::duration_cast;
+using std::chrono::duration;
+using std::chrono::milliseconds;
+
+// auto t1 = high_resolution_clock::now();
+// // function
+// auto t2 = high_resolution_clock::now();
+
+// duration<double, std::milli> ms_double = t2 - t1;
+
+// #ifdef TIMINGS
+// std::cout << ms_double.count() << "ms";
+// #endif
 
 struct targ{
     int i;
