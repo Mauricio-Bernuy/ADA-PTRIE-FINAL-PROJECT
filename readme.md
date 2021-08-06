@@ -3,7 +3,7 @@
 g++ -g P6\read_and_exec_prolog.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o execute.plg 
 
 
-g++ -D -TIMINGS -g P6\trie_generator.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o compile.plg       
+g++ -D TIMINGS -g P6\trie_generator.cpp P1\SPTRIE.cpp P3\SPTRIEGEN.cpp P6\read_prolog.cpp -o compile.plg       
 
 # execute
 

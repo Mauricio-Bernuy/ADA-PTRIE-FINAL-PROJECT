@@ -11,6 +11,7 @@ vector<string> S; // global string object
 
 vector<vector<vector<bool>*>> K_MEM;
 vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M;
+vector<vector<tuple<int, vector<targ>>>> OPT_LINE_M_DP;
 
 // AUXILIARY FUNCTIONS
 
@@ -418,6 +419,93 @@ tuple<int, vector<targ>> OPT_MEMO (int i, int j, vector<string> S_){
     return make_tuple(get<0>(line) + fcnt,temp);
 }
 
+tuple<int, vector<targ>> OPT_line_DP (int i, int j){ 
+    // if ((OPT_LINE_M[i][j]) != nullptr){
+    //     #ifdef PRINTING
+    //     printf("->OPT_line_M[%d][%d] HIT\n", i,j);
+    //     #endif
+    //     return *OPT_LINE_M[i][j];
+    // }
+
+    // if (i == j){
+    //     vector<targ> empty;
+    //     tuple<int, vector<targ>> xd = make_tuple(0, empty);
+    //     return xd;
+    // }
+    
+    int min = INT_MAX;
+    vector<targ> targs;
+    int targetr = 0;
+    auto kayfull = K_MEMO(i,j);
+    auto R_ = R_MEMO(i,j);
+    for (auto r : R_){
+        auto C_ = C(i,j,r);
+
+        int sum = 0;
+        //vector<targ> accum;
+        
+        for (auto ijprime : C_){
+            // auto iprime = ijprime[0];
+            // auto jprime = ijprime[1];
+            auto cur = get<0>(OPT_LINE_M_DP[ijprime[0]][ijprime[1]]) + K_MEMO(ijprime[0],ijprime[1]).size() - kayfull.size();
+            sum += cur;
+        }
+
+        if (sum < min){
+            min = sum;
+            targetr = r;
+        }
+    }
+    
+    // store candidate nodes 
+
+    auto elems = C(i,j,targetr);
+    for (auto ijprime : elems){
+        // tuple<int, vector<targ>> x = OPT_LINE_M_DP[ijprime[0]][ijprime[1]];
+        // MERGE SITUATION - in case there's more than one K for the prime indexes
+        auto kay = K_MEMO(ijprime[0],ijprime[1]);
+        if (kay.size() > 1){
+            #ifdef PRINTING
+            printf("(%d, %d) merge situation\n", ijprime[0],ijprime[1]);
+            #endif
+            // auto kay = kay;
+            //vector<targ> trg_ = get<1>(OPT_LINE_M_DP[ijprime[0]][ijprime[1]]);
+            vector<targ> temp;
+            vector<targ> * next = &temp;
+            
+            for (int k_ : kay){
+                if (k_ != targetr && !(find(kayfull.begin(),kayfull.end(), k_) != kayfull.end())){
+                    //vector<targ> empty;
+                    next->push_back(targ{ijprime[0],ijprime[1], k_, S[ijprime[0]-1][k_]/*, empty*/});
+                    next = &(*next)[0].sons; 
+                }
+            }
+            *next = get<1>(OPT_LINE_M_DP[ijprime[0]][ijprime[1]]);
+            //x = make_tuple(get<0>(OPT_LINE_M_DP[ijprime[0]][ijprime[1]]), temp);
+
+            targs.push_back(targ{ijprime[0],ijprime[1],targetr,S[ijprime[0]-1][targetr],temp});
+        }
+        else{
+            targs.push_back(targ{ijprime[0],ijprime[1],targetr,S[ijprime[0]-1][targetr],get<1>(OPT_LINE_M_DP[ijprime[0]][ijprime[1]])});
+        }
+    }
+
+    // tuple<int, vector<targ>> retrn = 
+    
+    // #ifdef PRINTING
+    // printf("OPT_line_MEMO(%d,%d) -> min: %d, vector<targ>.size(): %d \n",i,j,min,targs.size());
+    // #endif
+
+    // // tuple<int, vector<targ>> * copy =  new tuple<int, vector<targ>>;
+    // // *copy = retrn;  
+    // // OPT_LINE_M[i][j] = copy;
+    // #ifdef PRINTING
+    // printf("<-OPT_line_M[%d][%d] STORE\n", i,j);
+    // #endif
+
+    return make_tuple(min,targs);
+}
+
 void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
     int m = S[0].length();
 
@@ -430,7 +518,8 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
                 #ifdef PRINTING
                 printf("\tK_GEN_MEMO(%d,%d): {\n",i_,j_);
                 #endif
-                auto k = K_GEN_MEMO(i_,j_);
+                K_GEN_MEMO(i_,j_);
+
                 #ifdef PRINTING
                 for (auto x : k)
                     printf("%d,",x);
@@ -499,20 +588,29 @@ void get_all(int i = 1, int j = S.size(), int PRINTMODE = 0){
     
     if (PRINTMODE == 0 || PRINTMODE == 4){
         #ifdef PRINTING
-        printf("OPT_line_MEMO:\n");
-        #endif
+        printf("OPT_line_DP:\n");
+        #endif 
 
         int lim = j;
 	    for (int j_ = i; j_ <= j; j_++){
 			int i = lim;
 			int jj = j_;
+            auto t1 = high_resolution_clock::now();
 			for(int ii = 1; ii <= lim; ii++){
+                
                 #ifdef PRINTING
-                printf("\tOPT_line_MEMO(%d,%d): {\n",ii,jj);
+                printf("\tOPT_line_DP(%d,%d): {\n",ii,jj);
                 #endif
-                auto OPT_L = OPT_line_MEMO(ii,jj);
-                jj++;
+                if (ii != jj && ii <= jj){
+                    OPT_LINE_M_DP[ii][jj] = OPT_line_DP(ii,jj);
+                    jj++;
+                }
 			}
+            auto t2 = high_resolution_clock::now();
+            duration<double, std::milli> ms_double = t2 - t1;
+            #ifdef TIMINGS
+            cout <<"OPT_DP "<< lim << " " <<ms_double.count() << "ms\n";
+            #endif
 			lim--;            
         }
     }
@@ -551,15 +649,20 @@ tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
     vector<vector<tuple<int, vector<targ>>*>> OPT_LINE_M_ (j + 1, OPT_LINE_M_col_);    
     OPT_LINE_M = OPT_LINE_M_;
 
+    vector<tuple<int, vector<targ>>> OPT_LINE_DP_col_ (j + 1);
+    vector<vector<tuple<int, vector<targ>>>> OPT_LINE_DP_ (j + 1, OPT_LINE_DP_col_);    
+    OPT_LINE_M_DP = OPT_LINE_DP_;
+    
     vector<vector<bool>*> K_MEM_cols_ (j + 1, nullptr);
     vector<vector<vector<bool>*>> K_MEM_ (j + 1, K_MEM_cols_);
     K_MEM = K_MEM_;
+    vector<targ> empty;
 
     for (int f = 0; f <= j; f++) {
-        tuple<int, vector<targ>> * copy = new tuple<int, vector<targ>>;
-        tuple<int, vector<targ>> val = make_tuple(0, vector<targ>{});
-        *copy = val;
-        OPT_LINE_M[f][f] = copy;
+        // tuple<int, vector<targ>> * copy = new tuple<int, vector<targ>>;
+        // tuple<int, vector<targ>> val = 
+        // *copy = val;
+        OPT_LINE_M_DP[f][f] = make_tuple(0,empty);
         K_MEM[f][f] = new vector<bool>(m,true);
     }
 
@@ -572,7 +675,7 @@ tuple<int, vector<targ>> OPT_DP (int i, int j, vector<string> S_){
     printf("Finished Bottom-Up calculations\n");
     #endif
     
-    tuple<int,vector<targ>> line = *OPT_LINE_M[i][j];
+    tuple<int,vector<targ>> line = OPT_LINE_M_DP[i][j];
     //OPT_line_MEMO(i,j);
     auto a = K_GEN_MEMO(i,j);
 
